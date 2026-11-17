@@ -1,0 +1,50 @@
+services:
+  app:
+    build: .
+    container_name: ledgercode-app
+    ports:
+      - "8080:8000"
+    environment:
+      APP_NAME: "AI Invoice Coding & Bookkeeping Agent"
+      APP_ENV: local
+      APP_DEBUG: "true"
+      APP_URL: http://localhost:8080
+      DB_CONNECTION: mysql
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_DATABASE: ledgercode
+      DB_USERNAME: ledgercode
+      DB_PASSWORD: secret
+      MODULE_INVOICE_OCR: "true"
+      MODULE_EXPENSE_CODING: "true"
+      MODULE_GL_POSTING: "true"
+      MODULE_VENDOR_RECONCILIATION: "true"
+      MODULE_BANK_FEED: "true"
+      MODULE_CLOSE_CHECKLIST: "true"
+      MODULE_ATTENDANCE_OPS: "false"
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      - mysql
+    command: >
+      sh -c "composer install --no-interaction &&
+             php artisan key:generate --force &&
+             php artisan migrate --force &&
+             php artisan db:seed --force &&
+             php artisan serve --host=0.0.0.0 --port=8000"
+
+  mysql:
+    image: mysql:8.4
+    container_name: ledgercode-mysql
+    environment:
+      MYSQL_DATABASE: ledgercode
+      MYSQL_USER: ledgercode
+      MYSQL_PASSWORD: secret
+      MYSQL_ROOT_PASSWORD: rootsecret
+    ports:
+      - "3307:3306"
+    volumes:
+      - ledgercode_mysql:/var/lib/mysql
+
+volumes:
+  ledgercode_mysql:
